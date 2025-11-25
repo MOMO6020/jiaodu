@@ -56,6 +56,19 @@ public:
     void enable() { enable_ = true; };                                      ///< 启用电机
 
     virtual void offlineCallback() = 0;  ///< 电机离线回调函数, 当电机离线时调用
+    // 新增：设置位置控制参数
+    void setPositionParams(float min_angle, float max_angle) {
+        min_limit_ = min_angle;
+        max_limit_ = max_angle;
+    }
+
+    // 新增：设置目标角度（带限位处理）
+    void setTargetAngle(float target) {
+        // 软件限位
+        if (target < min_limit_) target = min_limit_;
+        if (target > max_limit_) target = max_limit_;
+        pid_ref_ = target;  // pid_ref_用于PID计算的目标值
+    }
 
 protected:
     MotorType       motor_type_;      ///< 电机类型
@@ -69,4 +82,7 @@ protected:
 
     DaemonPtr daemon_;            ///< 电机离线检测守护进程
     bool      is_online = false;  ///< 电机在线状态标志, true表示在线, false表示离线
+    protected:
+    float min_limit_ = -180.0f;  // 最小角度限制（默认-180°）
+    float max_limit_ = 180.0f;   // 最大角度限制（默认180°）
 };
